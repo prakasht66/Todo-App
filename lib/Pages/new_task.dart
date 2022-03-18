@@ -222,7 +222,7 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
                       MaterialStateProperty.all<Color>(Colors.white),
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
-                        side: BorderSide(color: Colors.grey, width: 0.5),
+                        side: const BorderSide(color: Colors.grey, width: 0.5),
                     borderRadius: BorderRadius.circular(18.0),
                   ))),
               child: Text('Urgent', style: TextStyle(color: kPrimary))),
