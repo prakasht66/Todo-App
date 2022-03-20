@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:iostest/constants.dart';
-import 'package:iostest/Pages/new_task.dart';
 import 'package:iostest/designComponents/space.dart';
 
 import '../designComponents/card_task.dart';

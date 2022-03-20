@@ -1,12 +1,14 @@
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:iostest/designComponents/Input_text.dart';
 import 'package:iostest/designComponents/base_template.dart';
 import 'package:iostest/designComponents/divider.dart';
 import 'package:iostest/extensions/extension_color.dart';
 import 'package:iostest/designComponents/space.dart';
 
 import '../constants.dart';
+import '../designComponents/header_widget.dart';
 
 class NewTaskWidget extends StatefulWidget {
   NewTaskWidget({Key? key}) : super(key: key);
@@ -18,8 +20,9 @@ class NewTaskWidget extends StatefulWidget {
 class _NewTaskWidgetState extends State<NewTaskWidget> {
   var dateController = TextEditingController();
   var placeController = TextEditingController();
+  var titleTextController = TextEditingController();
   DateTime selectedDate = DateTime.now();
-
+  Color selectedColor =   HexColor.fromHex('#fbe114');
   @override
   Widget build(BuildContext context) {
     return BaseWidget(
@@ -44,7 +47,9 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // HeaderWidget(title: 'My New Task',),
               const VSpace(size: spacing_tiny),
+              InputFieldWidget(trailingIcon: Icon(Icons.circle,color: selectedColor ,), labelText: 'My New Task', onTapIcon: () {  }, controller: titleTextController,),
               _titleWidget(),
               const VSpace(size: spacing_small),
               _colorsRow(),
@@ -90,10 +95,20 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
           customColors.length, // place the length of the array here
           (int index) {
         return InkWell(
+          onTap: (){getSelectedColor(index);} ,
           child: CircleAvatar(radius: 16, backgroundColor: customColors[index]),
         );
       }).toList(),
     );
+  }
+
+  void getSelectedColor(int selectedIndex)
+  {
+    Color currentColor = customColors[selectedIndex];
+    setState(() {
+      selectedColor = currentColor;
+    });
+
   }
 
   Widget _titleWidget() {
@@ -236,7 +251,7 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
                       MaterialStateProperty.all<Color>(Colors.white),
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
-                    side: BorderSide(color: Colors.grey, width: 0.5),
+                    side: const BorderSide(color: Colors.grey, width: 0.5),
                     borderRadius: BorderRadius.circular(18.0),
                   ))),
               child: Text(

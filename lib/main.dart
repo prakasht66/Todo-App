@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:iostest/extensions/extension_color.dart';
-import 'package:iostest/Pages/home.dart';
+import 'package:hive_flutter/adapters.dart';
 
-void main() {
+import 'package:iostest/screens/home.dart';
+
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+
   runApp(const MyApp());
 }
 

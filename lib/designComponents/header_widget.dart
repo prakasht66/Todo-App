@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 
 class HeaderWidget extends StatelessWidget {
-  const HeaderWidget({Key? key}) : super(key: key);
+  const HeaderWidget({Key? key, required this.title, this.textStyle}) : super(key: key);
+
+  final String title;
+  final TextStyle? textStyle;
 
   @override
   Widget build(BuildContext context) {
-    return Container(child: Text('Test',style:AppTextStyle.sofiaProBold(Colors.accents,16.0),),);
+    return Text(title,style:textStyle ?? AppTextStyle.sofiaProMedium(Colors.accents,16.0),);
   }
 
 }
-class CustomTextStyle {
-  static TextStyle? display5(BuildContext context) {
-    return Theme.of(context).textTheme.bodyText1?.copyWith(fontSize: 18.0);
-  }
-}
+
 
 class AppTextStyle {
   static Function sofiaProRegular = ({required Color color, required double size}) =>
