@@ -1,14 +1,18 @@
-import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:iostest/designComponents/Input_text.dart';
 import 'package:iostest/designComponents/base_template.dart';
 import 'package:iostest/designComponents/divider.dart';
 import 'package:iostest/extensions/extension_color.dart';
 import 'package:iostest/designComponents/space.dart';
+import 'package:iostest/helper/task_db.dart';
+import 'package:iostest/provider/taskprovider.dart';
+import 'package:provider/provider.dart';
 
 import '../constants.dart';
 import '../designComponents/header_widget.dart';
+import '../model/task_model.dart';
 
 class NewTaskWidget extends StatefulWidget {
   NewTaskWidget({Key? key}) : super(key: key);
@@ -22,7 +26,20 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
   var placeController = TextEditingController();
   var titleTextController = TextEditingController();
   DateTime selectedDate = DateTime.now();
-  Color selectedColor =   HexColor.fromHex('#fbe114');
+  Color selectedColor = HexColor.fromHex('#fbe114');
+  late final Box taskBox;
+
+  @override
+  void initState() {
+      super.initState();
+  }
+
+  @override
+  void dispose() {
+   // TaskDbManger().taskBox.close();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BaseWidget(
@@ -49,7 +66,15 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
             children: [
               // HeaderWidget(title: 'My New Task',),
               const VSpace(size: spacing_tiny),
-              InputFieldWidget(trailingIcon: Icon(Icons.circle,color: selectedColor ,), labelText: 'My New Task', onTapIcon: () {  }, controller: titleTextController,),
+              InputFieldWidget(
+                trailingIcon: Icon(
+                  Icons.circle,
+                  color: selectedColor,
+                ),
+                labelText: 'My New Task',
+                onTapIcon: () {},
+                controller: titleTextController,
+              ),
               _titleWidget(),
               const VSpace(size: spacing_small),
               _colorsRow(),
@@ -65,17 +90,19 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
               _taskTypeWidget()
             ],
           ),
-          Positioned(bottom: 60, child: bottomButton())
+          Positioned(bottom: 60, child: _submitButton())
         ],
       ),
     );
   }
 
-  Widget bottomButton() {
+  Widget _submitButton() {
     return SizedBox(
       width: 200.0,
       child: ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            addTask();
+          },
           style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all<Color>(kPrimary),
               shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -87,6 +114,24 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
     );
   }
 
+  Future<void> addTask() async {
+    TaskProvider counter = Provider.of<TaskProvider>(context, listen: false);
+    List<TaskModel> tasks = [];
+    tasks.add(TaskModel(
+        id: 0,
+        title: 'title2 - Test',
+        description: 'Desc2 sdfafdasfd',
+        dateCreated: '21 Mar 2022',
+        colorCode: '#4beed1'));
+    print('Addding Tasks');
+    //TaskDbManger().addTask(val: tasks[0]);
+    counter.addItem(tasks[0]);
+    Future.delayed(Duration(seconds: 1),(){
+      Navigator.of(context).pop();
+    });
+
+  }
+
   Widget _colorsRow() {
     return Wrap(
       spacing: 16.0,
@@ -95,20 +140,20 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
           customColors.length, // place the length of the array here
           (int index) {
         return InkWell(
-          onTap: (){getSelectedColor(index);} ,
+          onTap: () {
+            getSelectedColor(index);
+          },
           child: CircleAvatar(radius: 16, backgroundColor: customColors[index]),
         );
       }).toList(),
     );
   }
 
-  void getSelectedColor(int selectedIndex)
-  {
+  void getSelectedColor(int selectedIndex) {
     Color currentColor = customColors[selectedIndex];
     setState(() {
       selectedColor = currentColor;
     });
-
   }
 
   Widget _titleWidget() {
@@ -149,7 +194,7 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
                 labelStyle: TextStyle(color: Colors.grey)),
           ),
         ),
-        HSpace(size: spacing_tiny),
+        const HSpace(size: spacing_tiny),
         InkWell(
           child: Icon(CupertinoIcons.calendar_today),
           onTap: () {
@@ -237,7 +282,7 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
                       MaterialStateProperty.all<Color>(Colors.white),
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
-                        side: const BorderSide(color: Colors.grey, width: 0.5),
+                    side: const BorderSide(color: Colors.grey, width: 0.5),
                     borderRadius: BorderRadius.circular(18.0),
                   ))),
               child: Text('Urgent', style: TextStyle(color: kPrimary))),

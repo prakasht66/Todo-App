@@ -20,6 +20,7 @@ class CardTaskWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin:const EdgeInsets.symmetric(vertical: spacing_tiny) ,
       padding: const EdgeInsets.all(spacing_tiny),
       height: 170.0,
       decoration: BoxDecoration(
