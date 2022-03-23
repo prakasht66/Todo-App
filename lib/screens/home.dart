@@ -49,7 +49,8 @@ class _HomePageState extends State<HomePage> {
     var height = AppBar().preferredSize.height;
     return Container(
       margin: const EdgeInsets.all(spacing_small),
-      child: Stack(alignment: Alignment.center, fit:StackFit.expand , children: [
+      child:
+          Stack(alignment: Alignment.center, fit: StackFit.expand, children: [
         SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
@@ -64,41 +65,6 @@ class _HomePageState extends State<HomePage> {
               const VSpace(size: spacing_small),
               const VSpace(size: spacing_small),
               _todoItems(),
-              // const CardTaskWidget(
-              //   title: 'Test',
-              //   date: '17 oct 2022',
-              //   time: '8:00',
-              //   cardBackground: Colors.yellow,
-              //   status: 'Added',
-              //   chipItems: ['School', 'Everyday'],
-              // ),
-              // const VSpace(size: spacing_small),
-              // const CardTaskWidget(
-              //   title: 'dagfgfadg',
-              //   date: '17 oct 2022',
-              //   time: '8:00',
-              //   cardBackground: Colors.cyan,
-              //   status: 'Added',
-              //   chipItems: ['School', 'Everyday'],
-              // ),
-              // const VSpace(size: spacing_small),
-              // const CardTaskWidget(
-              //   title: 'dfadfgfagfdag',
-              //   date: '17 oct 2022',
-              //   time: '8:00',
-              //   cardBackground: Colors.pink,
-              //   status: 'Added',
-              //   chipItems: ['School', 'Everyday'],
-              // ),
-              // const VSpace(size: spacing_small),
-              // const CardTaskWidget(
-              //   title: 'gadfgdfdgadg',
-              //   date: '17 oct 2022',
-              //   time: '8:00',
-              //   cardBackground: Colors.deepPurpleAccent,
-              //   status: 'Added',
-              //   chipItems: ['School', 'Everyday'],
-              // ),
               const VSpace(size: spacing_small),
             ],
           ),
@@ -156,25 +122,46 @@ class _HomePageState extends State<HomePage> {
       ]),
     );
   }
-
+  Future getProjectDetails() async {
+    context.select((TaskProvider taskProvider) => taskProvider.getItems() );
+    var tasks = context.watch<TaskProvider>().taskList;
+    return tasks;
+  }
   Widget _todoItems() {
-    context.watch<TaskProvider>().getItems();
-    var items = context.read<TaskProvider>().taskList;
-    return ListView.builder(
-        scrollDirection: Axis.vertical,
-        shrinkWrap: true,
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          items.length;
 
-          return CardTaskWidget(
-            title: items[index].title,
-            date: DateTime.now().toString(),
-            time: DateTime.now().toLocal().toString(),
-            //cardBackground:  items[index].title,
-            status: items[index].title,
-            chipItems: ['School', 'Everyday'],
-          );
+
+    return FutureBuilder(
+          future: getProjectDetails(),
+        builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          } else {
+            if (snapshot.error != null) {
+              return const Center(
+                child: Text('An error occured'),
+              );
+            } else {
+              return ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: snapshot.data.length,
+                  itemBuilder: (context, index) {
+                    snapshot.data.length;
+                    return CardTaskWidget(
+                      title: snapshot.data[index].title,
+                      date: DateTime.now().toString(),
+                      time: DateTime.now().toLocal().toString(),
+                      //cardBackground:  items[index].title,
+                      status: snapshot.data[index].title,
+                      chipItems: ['School', 'Everyday'],
+                    );
+                  });
+            }
+          }
         });
   }
 

@@ -18,7 +18,7 @@ class TaskProvider with ChangeNotifier{
 
     _taskList = TaskDbManger().taskBox.values.toList();
 
-    notifyListeners();
+    //notifyListeners();
   }
 
   updateItem(int index, TaskModel inventory) {

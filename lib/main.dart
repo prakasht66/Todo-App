@@ -20,7 +20,10 @@ Future<void> main() async {
   TaskDbManger().initDb();
 
   runApp(MultiProvider(providers:[
-    ChangeNotifierProvider (create: (_) => TaskProvider() )
+    ChangeNotifierProvider (create: (_) => TaskProvider() ),
+
+
+
   ] , child: const MyApp(),));
 }
 
