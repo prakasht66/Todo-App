@@ -25,18 +25,19 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
   var dateController = TextEditingController();
   var placeController = TextEditingController();
   var titleTextController = TextEditingController();
+  var descriptionController = TextEditingController();
   DateTime selectedDate = DateTime.now();
   Color selectedColor = HexColor.fromHex('#fbe114');
   late final Box taskBox;
 
   @override
   void initState() {
-      super.initState();
+    super.initState();
   }
 
   @override
   void dispose() {
-   // TaskDbManger().taskBox.close();
+    // TaskDbManger().taskBox.close();
     super.dispose();
   }
 
@@ -75,6 +76,14 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
                 onTapIcon: () {},
                 controller: titleTextController,
               ),
+              const VSpace(size: spacing_small),
+              InputFieldWidget(
+                maxLines: 5,
+                labelText: 'Description',
+                onTapIcon: () {},
+                controller: descriptionController,
+              ),
+              const VSpace(size: spacing_small),
               _titleWidget(),
               const VSpace(size: spacing_small),
               _colorsRow(),
@@ -116,20 +125,19 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
 
   Future<void> addTask() async {
     TaskProvider counter = Provider.of<TaskProvider>(context, listen: false);
-    List<TaskModel> tasks = [];
-    tasks.add(TaskModel(
+   var task= TaskModel(
         id: 0,
-        title: 'title2 - Test',
-        description: 'Desc2 sdfafdasfd',
-        dateCreated: '21 Mar 2022',
-        colorCode: '#4beed1'));
+        title: titleTextController.text,
+        description: descriptionController.text,
+        dateCreated: DateTime.now().toString(),
+        //dateTarget: selectedDate.toString(),
+        colorCode: selectedColor.toHex(leadingHashSign: true));
     print('Addding Tasks');
     //TaskDbManger().addTask(val: tasks[0]);
-    counter.addItem(tasks[0]);
-    Future.delayed(Duration(seconds: 1),(){
+    await counter.addItem(task);
+    Future.delayed(Duration(seconds: 1), () {
       Navigator.of(context).pop();
     });
-
   }
 
   Widget _colorsRow() {

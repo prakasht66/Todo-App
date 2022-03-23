@@ -34,6 +34,7 @@ class TaskModel extends HiveObject{
     required this.title,
     required this.description,
     required this.dateCreated,
+    //required this.dateTarget,
     this.timeCreated  = '',
     this.colorCode ='',
     this.place = '' ,
@@ -43,6 +44,8 @@ class TaskModel extends HiveObject{
   void toggleComplete(){
     completed =! completed;
   }
+
+
 
 
 }

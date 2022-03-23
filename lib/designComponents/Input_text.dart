@@ -3,15 +3,16 @@ import 'package:iostest/constants.dart';
 import 'package:iostest/designComponents/space.dart';
 
 class InputFieldWidget extends StatelessWidget {
-  const InputFieldWidget({Key? key, required this.labelText, required this.trailingIcon, this.style, required this.controller, required this.onTapIcon, this.isTfEnabled, this.hint}) : super(key: key);
+  const InputFieldWidget({Key? key, required this.labelText, this.trailingIcon, this.style, required this.controller, required this.onTapIcon, this.isTfEnabled, this.hint, this.maxLines}) : super(key: key);
 
   final String labelText ;
-  final Icon trailingIcon;
+  final Icon? trailingIcon;
   final TextStyle? style;
   final TextEditingController controller;
   final VoidCallback onTapIcon;
   final bool? isTfEnabled;
   final String? hint;
+  final int? maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +21,9 @@ class InputFieldWidget extends StatelessWidget {
       children: [
         Expanded(
           child: TextField(
+            keyboardType: TextInputType.multiline,
+            maxLines: maxLines ?? 1,
+            minLines: 1,
             enabled: isTfEnabled ?? true,
             style: style ?? TextStyle(
                 color: kPrimary,
@@ -41,7 +45,7 @@ class InputFieldWidget extends StatelessWidget {
         ),
         const HSpace(size: spacing_tiny),
         InkWell(
-          child: trailingIcon,
+          child: trailingIcon ?? const SizedBox(),
           onTap: onTapIcon ,
         )
       ],

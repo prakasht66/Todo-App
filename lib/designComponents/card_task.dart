@@ -5,16 +5,18 @@ import '../constants.dart';
 
 class CardTaskWidget extends StatelessWidget {
   const CardTaskWidget(
-      {Key? key, this.cardBackground, this.chipItems, required this.title, required this.date, required this.time, required this.status})
+      {Key? key, this.cardBackground, this.chipItems, required this.title, this.date, required this.time, required this.status, this.onTapDelete})
       : super(key: key);
 
   final Color? cardBackground;
 
   final List<String>? chipItems;
   final String title;
-  final String date;
+  final String? date;
   final String time;
   final String status;
+  final VoidCallback? onTapDelete;
+
 
 
   @override
@@ -76,7 +78,7 @@ class CardTaskWidget extends StatelessWidget {
       const Icon(Icons.calendar_today, size: 16,),
       const HSpace(size: spacing_micro),
       Text(
-       date,
+       date ?? DateTime.now().toString(),
         style: TextStyle(
             color: kPrimary,
             fontFamily: 'Poppins',
@@ -99,7 +101,7 @@ class CardTaskWidget extends StatelessWidget {
             fontSize: 12),
       ),
       const Spacer(),
-      const Icon(Icons.circle_outlined)
+      InkWell(child:  Icon(Icons.circle_outlined),onTap: onTapDelete,)
     ]);
   }
 }

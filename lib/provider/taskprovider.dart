@@ -8,13 +8,13 @@ class TaskProvider with ChangeNotifier{
 
   List get taskList => _taskList;
 
-  addItem(TaskModel taskModel) async {
+  Future<dynamic>addItem(TaskModel taskModel) async {
     TaskDbManger().addTask(val: taskModel);
     getItems();
-    //notifyListeners();
+    notifyListeners();
   }
 
-  getItems() async {
+  Future<dynamic> getItems() async {
 
     _taskList = TaskDbManger().taskBox.values.toList();
 
@@ -28,7 +28,7 @@ class TaskProvider with ChangeNotifier{
     notifyListeners();
   }
 
-  deleteItem(int index) {
+  Future<dynamic>deleteItem(int index) async {
 
 
     TaskDbManger().taskBox.deleteAt(index);
