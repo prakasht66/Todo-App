@@ -14,9 +14,9 @@ Future<void> main() async {
 
   // Registering the adapter
   Hive.registerAdapter(TaskModelAdapter());
-
   // Opening the box
   await Hive.openBox('tasks');
+
   TaskDbManger().initDb();
 
   runApp(MultiProvider(providers:[

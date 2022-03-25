@@ -16,35 +16,41 @@ class TaskModelAdapter extends TypeAdapter<TaskModel> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return TaskModel(id: 0,   title: '', description: '',dateCreated: '',timeCreated:'',place:'',colorCode: '')
-      ..title = fields[0] as String
-      ..description = fields[1] as String
-      ..dateCreated = fields[2] as String
-      ..timeCreated = fields[3] as String
-      ..place = fields[4] as String
-      ..colorCode = fields[5] as String;
-    //..dateTarget = fields[6] as String;
+    return TaskModel(
+      id: fields[0] ?? '0',
+      title: fields[1] ?? 'No Title',
+      description: fields[2] ?? '',
+      dateCreated: fields[3] ?? DateTime.now().toString(),
+      dateTarget: fields[4] ?? DateTime.now().toString(),
+      timeCreated: fields[5] ?? DateTime.now().toString(),
+      colorCode: fields[7] ?? '#f79e82' ,
+      place: fields[6]  ?? '',
+      currentStatus: fields[8] ?? 'notStarted', categories: fields[9] ?? ['General'].toList(),
+    );
   }
 
   @override
   void write(BinaryWriter writer, TaskModel obj) {
     writer
-
+      ..writeByte(9)
       ..writeByte(0)
-      ..write(obj.title)
+      ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.description)
+      ..write(obj.title)
       ..writeByte(2)
-      ..write(obj.dateCreated)
+      ..write(obj.description)
       ..writeByte(3)
-      ..write(obj.timeCreated)
+      ..write(obj.dateCreated)
       ..writeByte(4)
-      ..write(obj.place)
+      ..write(obj.dateTarget)
       ..writeByte(5)
-      ..write(obj.colorCode);
-     // ..writeByte(6)
-     // ..write(obj.dateTarget);
-
+      ..write(obj.timeCreated)
+      ..writeByte(6)
+      ..write(obj.place)
+      ..writeByte(7)
+      ..write(obj.colorCode)
+      ..writeByte(8)
+      ..write(obj.currentStatus);
   }
 
   @override

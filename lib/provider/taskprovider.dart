@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:iostest/constants.dart';
 import 'package:iostest/helper/task_db.dart';
 import 'package:iostest/model/task_model.dart';
 
@@ -7,6 +8,14 @@ class TaskProvider with ChangeNotifier{
   List _taskList = <TaskModel>[];
 
   List get taskList => _taskList;
+
+  Color _selectedColor = kPrimary;
+  Color get selectedColor => _selectedColor;
+  set selectedColor(Color val) {
+    _selectedColor=val;
+    notifyListeners();
+  }
+
 
   Future<dynamic>addItem(TaskModel taskModel) async {
     TaskDbManger().addTask(val: taskModel);

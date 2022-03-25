@@ -5,7 +5,14 @@ import '../constants.dart';
 
 class CardTaskWidget extends StatelessWidget {
   const CardTaskWidget(
-      {Key? key, this.cardBackground, this.chipItems, required this.title, this.date, required this.time, required this.status, this.onTapDelete})
+      {Key? key,
+      this.cardBackground,
+      this.chipItems,
+      required this.title,
+      this.date,
+      required this.time,
+      required this.status,
+      this.onTapDelete})
       : super(key: key);
 
   final Color? cardBackground;
@@ -17,13 +24,11 @@ class CardTaskWidget extends StatelessWidget {
   final String status;
   final VoidCallback? onTapDelete;
 
-
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin:const EdgeInsets.symmetric(vertical: spacing_tiny) ,
-      padding: const EdgeInsets.all(spacing_tiny),
+      margin: const EdgeInsets.symmetric(vertical: spacing_tiny),
+      padding: const EdgeInsets.symmetric(horizontal: spacing_tiny,vertical: spacing_micro),
       height: 170.0,
       decoration: BoxDecoration(
           color: cardBackground ?? Colors.cyan,
@@ -36,16 +41,12 @@ class CardTaskWidget extends StatelessWidget {
           Row(
             children: [
               Wrap(
-                spacing: 4.0,
-                runSpacing: 0.0,
+                spacing: 1.0,
                 children: List<Widget>.generate(
                     chipItems!.length, // place the length of the array here
-                        (int index) {
-                      return Chip(
-                          label: Text(chipItems![index])
-                      );
-                    }
-                ).toList(),
+                    (int index) {
+                  return Chip(label: Text(chipItems![index]));
+                }).toList(),
               ),
               const Spacer(),
               const Icon(Icons.edit_note_rounded)
@@ -75,10 +76,13 @@ class CardTaskWidget extends StatelessWidget {
 
   Widget dateWidget() {
     return Row(children: [
-      const Icon(Icons.calendar_today, size: 16,),
+      const Icon(
+        Icons.calendar_today,
+        size: 16,
+      ),
       const HSpace(size: spacing_micro),
       Text(
-       date ?? DateTime.now().toString(),
+        date ?? DateTime.now().toString(),
         style: TextStyle(
             color: kPrimary,
             fontFamily: 'Poppins',
@@ -90,10 +94,13 @@ class CardTaskWidget extends StatelessWidget {
 
   Widget timeWidget() {
     return Row(children: [
-      const Icon(Icons.access_time, size: 16,),
+      const Icon(
+        Icons.access_time,
+        size: 16,
+      ),
       const HSpace(size: spacing_micro),
       Text(
-      time,
+        time,
         style: TextStyle(
             color: kPrimary,
             fontFamily: 'Poppins',
@@ -101,7 +108,10 @@ class CardTaskWidget extends StatelessWidget {
             fontSize: 12),
       ),
       const Spacer(),
-      InkWell(child:  Icon(Icons.circle_outlined),onTap: onTapDelete,)
+      InkWell(
+        child: Icon(Icons.circle_outlined),
+        onTap: onTapDelete,
+      )
     ]);
   }
 }

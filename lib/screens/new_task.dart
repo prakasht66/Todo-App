@@ -1,3 +1,4 @@
+import 'package:faker/faker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -8,14 +9,15 @@ import 'package:iostest/extensions/extension_color.dart';
 import 'package:iostest/designComponents/space.dart';
 import 'package:iostest/helper/task_db.dart';
 import 'package:iostest/provider/taskprovider.dart';
+import 'package:iostest/screens/new_task_top_widget.dart';
 import 'package:provider/provider.dart';
-
+import 'dart:math';
 import '../constants.dart';
 import '../designComponents/header_widget.dart';
 import '../model/task_model.dart';
 
 class NewTaskWidget extends StatefulWidget {
-  NewTaskWidget({Key? key}) : super(key: key);
+  const NewTaskWidget({Key? key}) : super(key: key);
 
   @override
   State<NewTaskWidget> createState() => _NewTaskWidgetState();
@@ -29,6 +31,7 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
   DateTime selectedDate = DateTime.now();
   Color selectedColor = HexColor.fromHex('#fbe114');
   late final Box taskBox;
+  List<String>selectedChips =[];
 
   @override
   void initState() {
@@ -61,89 +64,111 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
       padding: const EdgeInsets.only(left: spacing_small, right: spacing_small),
       child: Stack(
         alignment: Alignment.center,
+        fit: StackFit.expand,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // HeaderWidget(title: 'My New Task',),
-              const VSpace(size: spacing_tiny),
-              InputFieldWidget(
-                trailingIcon: Icon(
-                  Icons.circle,
-                  color: selectedColor,
+          SingleChildScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+               NewTaskTopWidget(titleTextController: titleTextController,),
+                const VSpace(size: spacing_small),
+                InputFieldWidget(
+                  labelText: 'Description',
+                  onTapIcon: () {},
+                  controller: descriptionController,
                 ),
-                labelText: 'My New Task',
-                onTapIcon: () {},
-                controller: titleTextController,
-              ),
-              const VSpace(size: spacing_small),
-              InputFieldWidget(
-                maxLines: 5,
-                labelText: 'Description',
-                onTapIcon: () {},
-                controller: descriptionController,
-              ),
-              const VSpace(size: spacing_small),
-              _titleWidget(),
-              const VSpace(size: spacing_small),
-              _colorsRow(),
-              const VSpace(size: spacing_small),
-              const HorizontalDivider(),
-              const VSpace(size: spacing_tiny),
-              _dateSelector(),
-              const HorizontalDivider(),
-              const VSpace(size: spacing_tiny),
-              _placeEntry(),
-              const HorizontalDivider(),
-              const VSpace(size: spacing_tiny),
-              _taskTypeWidget()
-            ],
+                const VSpace(size: spacing_small),
+                _titleWidget(),
+                const VSpace(size: spacing_small),
+                _colorsRow(),
+                const VSpace(size: spacing_small),
+                const HorizontalDivider(),
+                const VSpace(size: spacing_tiny),
+                _dateSelector(),
+                const HorizontalDivider(),
+                const VSpace(size: spacing_tiny),
+                //_placeEntry(),
+                // const HorizontalDivider(),
+                const VSpace(size: spacing_tiny),
+                _taskPriorityWidget(),
+                const VSpace(size: spacing_tiny),
+                const HorizontalDivider(),
+                _chipItems(),
+                const VSpace(size: spacing_tiny),
+              ],
+            ),
           ),
-          Positioned(bottom: 60, child: _submitButton())
+          Positioned(bottom: 20, child: Container(color: Colors.transparent, padding: EdgeInsets.all(spacing_tiny), child: _submitButton()))
         ],
       ),
     );
   }
 
+
+  Widget _chipItems() {
+    String _isSelected = "";
+    return Wrap(
+        alignment: WrapAlignment.start,
+        spacing: 2.0,
+
+        runAlignment: WrapAlignment.start,
+        crossAxisAlignment: WrapCrossAlignment.start,
+        direction: Axis.horizontal,
+        children: chipCategories.map((i) => Container(
+          margin: const EdgeInsets.symmetric(horizontal: 2.0),
+          child: ChoiceChip(
+              backgroundColor: customColors[Random().nextInt(customColors.length)],
+              label: Text(i), onSelected: (value) {
+                selectedChips.add(i);
+
+          ;},  selected: _isSelected == i,),
+        )).toList());
+  }
+
   Widget _submitButton() {
-    return SizedBox(
-      width: 200.0,
-      child: ElevatedButton(
-          onPressed: () {
-            addTask();
-          },
-          style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all<Color>(kPrimary),
-              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                  RoundedRectangleBorder(
-                side: BorderSide.none,
-                borderRadius: BorderRadius.circular(18.0),
-              ))),
-          child: Text('Save Task')),
+    return SafeArea(
+      child: SizedBox(
+        width: 200.0,
+        child: ElevatedButton(
+            onPressed: () async {
+              await addTask();
+            },
+            style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(kPrimary),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                  side: BorderSide.none,
+                  borderRadius: BorderRadius.circular(18.0),
+                ))),
+            child: Text('Save Task')),
+      ),
     );
   }
 
   Future<void> addTask() async {
     TaskProvider counter = Provider.of<TaskProvider>(context, listen: false);
-   var task= TaskModel(
-        id: 0,
+    var task = TaskModel(
+        id: 0.toString(),
         title: titleTextController.text,
         description: descriptionController.text,
         dateCreated: DateTime.now().toString(),
-        //dateTarget: selectedDate.toString(),
-        colorCode: selectedColor.toHex(leadingHashSign: true));
-    print('Addding Tasks');
+        dateTarget: selectedDate.toString(),
+        currentStatus: status.notStarted.toString(),
+        colorCode: selectedColor.toHex(), categories: selectedChips.isNotEmpty ? selectedChips : ['General'].toList());
     //TaskDbManger().addTask(val: tasks[0]);
     await counter.addItem(task);
-    Future.delayed(Duration(seconds: 1), () {
+    Future.delayed(const Duration(seconds: 1), () {
       Navigator.of(context).pop();
     });
   }
 
   Widget _colorsRow() {
-    return Wrap(
-      spacing: 16.0,
-      runSpacing: 8.0,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      // runSpacing: 8.0,
       children: List<Widget>.generate(
           customColors.length, // place the length of the array here
           (int index) {
@@ -159,9 +184,9 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
 
   void getSelectedColor(int selectedIndex) {
     Color currentColor = customColors[selectedIndex];
-    setState(() {
-      selectedColor = currentColor;
-    });
+    //context.select((TaskProvider value) => value.selectedColor = currentColor);
+    context.read<TaskProvider>().selectedColor = currentColor;
+    selectedColor = currentColor;
   }
 
   Widget _titleWidget() {
@@ -258,14 +283,14 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
       lastDate: DateTime(2025),
     );
     if (picked != null && picked != selectedDate) {
-      setState(() {
+      //setState(() {
         selectedDate = picked;
         dateController.text = selectedDate.toIso8601String();
-      });
+     // });
     }
   }
 
-  Widget _taskTypeWidget() {
+  Widget _taskPriorityWidget() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,

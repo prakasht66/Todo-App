@@ -1,18 +1,11 @@
-
-import 'dart:ui';
-import 'dart:math' as math;
-import 'package:faker/faker.dart';
-import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:iostest/constants.dart';
 
-import '../extensions/extension_color.dart';
 part 'task_model.g.dart';
 
 @HiveType(typeId: 0)
-class TaskModel extends HiveObject{
+class TaskModel extends HiveObject {
   @HiveField(0)
-  final int id;
+  final String id;
   @HiveField(1)
   late String title;
   @HiveField(2)
@@ -27,25 +20,22 @@ class TaskModel extends HiveObject{
   String place;
   @HiveField(7)
   String colorCode;
-  @HiveField(8, defaultValue: false)
-  bool completed;
-  TaskModel({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.dateCreated,
-    //required this.dateTarget,
-    this.timeCreated  = '',
-    this.colorCode ='',
-    this.place = '' ,
-    this.completed =false
-  });
+  @HiveField(8)
+  String currentStatus;
+  @HiveField(9)
+  late List<String> categories;
 
-  void toggleComplete(){
-    completed =! completed;
-  }
-
-
-
-
+  TaskModel(
+      {required this.id,
+      required this.title,
+      required this.description,
+      required this.dateCreated,
+      required this.dateTarget,
+      required this.categories,
+      this.timeCreated = '',
+      this.colorCode = '',
+      this.place = '',
+      this.currentStatus = 'notStarted'});
 }
+
+enum status { ongoing, upcoming, completed, notStarted }

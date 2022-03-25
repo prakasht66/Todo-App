@@ -30,9 +30,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     const int totalDuration = 1500;
     _animationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: totalDuration));
-    _animation= Tween(begin: 0.0,end: 1.0).animate(_animationController);
-     _animationController.forward();
-
+    _animation = Tween(begin: 0.0, end: 1.0).animate(_animationController);
+    _animationController.forward();
   }
 
   @override
@@ -69,28 +68,38 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget buildBody() {
-    var height = AppBar().preferredSize.height;
+
     return Container(
       margin: const EdgeInsets.all(spacing_small),
       child:
           Stack(alignment: Alignment.center, fit: StackFit.expand, children: [
-        SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              title_widget(),
-              const VSpace(size: spacing_tiny),
-              subTitleWidget(),
-              const VSpace(size: spacing_small),
-              timeLineWidget(),
-              const VSpace(size: spacing_small),
-              const VSpace(size: spacing_small),
-              _todoItems(),
-              const VSpace(size: spacing_small),
-            ],
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+
+            title_widget(),
+            const VSpace(size: spacing_tiny),
+            subTitleWidget(),
+            const VSpace(size: spacing_small),
+            timeLineWidget(),
+            const VSpace(size: spacing_small),
+
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+
+                    _todoItems(),
+                    const VSpace(size: spacing_small),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
         Positioned(
             left: 0,
@@ -154,8 +163,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Widget _todoItems() {
     return FadeTransition(
-     opacity: _animationController,
-
+      opacity: _animationController,
       child: FutureBuilder(
           future: getProjectDetails(),
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
@@ -190,16 +198,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             title: snapshot.data[index].title,
                             //date:  DateFormat('dd/MM/yyyy').parse(snapshot.data[index].dateTarget).toString(),
                             time: DateTime.now().toLocal().toString(),
-                            cardBackground: HexColor.fromHex(snapshot.data[index].colorCode),
+                            cardBackground: HexColor.fromHex(
+                                snapshot.data[index].colorCode),
                             status: snapshot.data[index].title,
-                            chipItems: ['School', 'Everyday'],
+                            chipItems: snapshot.data[index].categories,
                             onTapDelete: () async {
                               print('Delete this item');
 
-                              await context.read<TaskProvider>().deleteItem(index);
-                             await context.read<TaskProvider>().getItems();
-
-
+                              await context
+                                  .read<TaskProvider>()
+                                  .deleteItem(index);
+                              await context.read<TaskProvider>().getItems();
                             },
                           ));
                     });
