@@ -10,11 +10,13 @@ import 'package:iostest/designComponents/space.dart';
 import 'package:iostest/helper/task_db.dart';
 import 'package:iostest/provider/taskprovider.dart';
 import 'package:iostest/screens/new_task_top_widget.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
 import '../constants.dart';
 import '../designComponents/header_widget.dart';
 import '../model/task_model.dart';
+import '../utils.dart';
 
 class NewTaskWidget extends StatefulWidget {
   const NewTaskWidget({Key? key}) : super(key: key);
@@ -32,20 +34,22 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
   Color selectedColor = HexColor.fromHex('#fbe114');
   late final Box taskBox;
   List<String>selectedChips =[];
+  bool shouldPop = true;
+
+  var titleFocus = FocusNode();
 
   @override
   void initState() {
     super.initState();
   }
-
   @override
   void dispose() {
-    // TaskDbManger().taskBox.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+
     return BaseWidget(
       body: buildBody(),
       titleText: 'New Task',
@@ -67,18 +71,20 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
         fit: StackFit.expand,
         children: [
           SingleChildScrollView(
-            physics: AlwaysScrollableScrollPhysics(),
+            physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-               NewTaskTopWidget(titleTextController: titleTextController,),
+               NewTaskTopWidget(controller: titleTextController, title: 'My New Task', focusNode: titleFocus,),
                 const VSpace(size: spacing_small),
                 InputFieldWidget(
                   labelText: 'Description',
                   onTapIcon: () {},
                   controller: descriptionController,
                 ),
+                const VSpace(size: spacing_small),
+                _thinkAnimation(),
                 const VSpace(size: spacing_small),
                 _titleWidget(),
                 const VSpace(size: spacing_small),
@@ -100,12 +106,26 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
               ],
             ),
           ),
-          Positioned(bottom: 20, child: Container(color: Colors.transparent, padding: EdgeInsets.all(spacing_tiny), child: _submitButton()))
+          Positioned(bottom: 20, child: Container(color: Colors.transparent, padding: const EdgeInsets.all(spacing_tiny), child: _submitButton()))
         ],
       ),
     );
   }
 
+  Widget _thinkAnimation()
+  {
+    var rProvider = context.read<TaskProvider>();
+    if(rProvider.showAnimation)
+      {
+        return SizedBox(height:100.0,child: Lottie.asset('assets/forgot_person.json'));
+      }
+    else
+      {
+        return const SizedBox();
+      }
+
+
+  }
 
   Widget _chipItems() {
     String _isSelected = "";
@@ -133,7 +153,13 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
         width: 200.0,
         child: ElevatedButton(
             onPressed: () async {
+
+              var isValid =  validateInputs();
+          if (isValid)
+            {
               await addTask();
+            }
+
             },
             style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all<Color>(kPrimary),
@@ -147,8 +173,65 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
     );
   }
 
+  bool validateInputs()
+  {
+   bool isValid = false;
+    if (titleTextController.text.isEmpty)
+      {
+        showDialog('Title Cannot be Empty');
+        return isValid;
+      }
+    if (descriptionController.text.isEmpty)
+      {
+        showDialog('Description Cannot be Empty');
+        return isValid;
+      }
+
+    isValid =true;
+
+    return isValid;
+
+
+  }
+
+  void showDialog(String message)
+  {
+    showModalBottomSheet(
+      context: context,
+
+      builder: (context) {        // we set up a container inside which
+        // we create center column and display text
+        return SizedBox(
+          height: 200,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                 Text(message),
+                ElevatedButton(
+                    child: const Text(
+                        'Ok',
+                        style: TextStyle(fontSize: 14)
+                    ),
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(kPrimary),
+                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              side: BorderSide.none,
+                              borderRadius: BorderRadius.circular(18.0),
+                            ))),
+                    onPressed: () {Navigator.pop(context);},
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> addTask() async {
-    TaskProvider counter = Provider.of<TaskProvider>(context, listen: false);
+    TaskProvider taskProvider = Provider.of<TaskProvider>(context, listen: false);
     var task = TaskModel(
         id: 0.toString(),
         title: titleTextController.text,
@@ -158,10 +241,10 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
         currentStatus: status.notStarted.toString(),
         colorCode: selectedColor.toHex(), categories: selectedChips.isNotEmpty ? selectedChips : ['General'].toList());
     //TaskDbManger().addTask(val: tasks[0]);
-    await counter.addItem(task);
-    Future.delayed(const Duration(seconds: 1), () {
+    await taskProvider.addItem(task);
+    //Future.delayed(const Duration(seconds: 1), () {
       Navigator.of(context).pop();
-    });
+    //});
   }
 
   Widget _colorsRow() {
@@ -229,7 +312,7 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
         ),
         const HSpace(size: spacing_tiny),
         InkWell(
-          child: Icon(CupertinoIcons.calendar_today),
+          child: const Icon(CupertinoIcons.calendar_today),
           onTap: () {
             _selectDate(context);
           },
@@ -272,20 +355,36 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
   }
 
   void goBack() {
+    context.read<TaskProvider>().showAnimation = false;
     Navigator.pop(context);
   }
 
   _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2025),
+
+    final DateTime? picked= await showDatePicker(
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Colors.black, // header background color
+              onPrimary: Colors.white, // header text color
+              onSurface: Colors.black, // body text color
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                primary: Colors.black, // button text color
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      }, initialDate: DateTime.now(),
+      firstDate: DateTime.now(),  lastDate:  DateTime(2025), context: context,
     );
     if (picked != null && picked != selectedDate) {
       //setState(() {
         selectedDate = picked;
-        dateController.text = selectedDate.toIso8601String();
+        dateController.text = BaseUtils.convertDateTimeDisplay (selectedDate.toString());
      // });
     }
   }

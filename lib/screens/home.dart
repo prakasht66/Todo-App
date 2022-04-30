@@ -6,6 +6,8 @@ import 'package:iostest/designComponents/space.dart';
 import 'package:iostest/extensions/extension_color.dart';
 import 'package:iostest/model/task_model.dart';
 import 'package:iostest/provider/taskprovider.dart';
+import 'package:iostest/route_name.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 import '../designComponents/card_task.dart';
@@ -20,23 +22,36 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
-  late AnimationController _animationController;
+  late AnimationController _listAnimationController;
+  late AnimationController _addTaskBtnAnimationController;
+
+
   late Animation _animation;
+  late Animation<double> _btnAnimation;
   double animationDuration = 0.0;
+
 
   @override
   void initState() {
     super.initState();
     const int totalDuration = 1500;
-    _animationController = AnimationController(
+    _listAnimationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: totalDuration));
-    _animation = Tween(begin: 0.0, end: 1.0).animate(_animationController);
-    _animationController.forward();
+    _animation = Tween(begin: 0.0, end: 1.0).animate(_listAnimationController);
+    //_btnAnimation = Tween(begin: 0.0, end: 1.0).animate(_addTaskBtnAnimationController);
+    _addTaskBtnAnimationController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: totalDuration));
+    _listAnimationController.forward();
+    _addTaskBtnAnimationController.forward();
+  _btnAnimation = CurvedAnimation(
+        parent: _addTaskBtnAnimationController,
+        curve: Curves.fastOutSlowIn,);
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _listAnimationController.dispose();
+    _addTaskBtnAnimationController.dispose();
     super.dispose();
   }
 
@@ -108,7 +123,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             child: Container(
               height: 100,
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.only(
+                  borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(5.0),
                       topRight: Radius.circular(5.0)),
                   color: Colors.pink,
@@ -122,35 +137,40 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         Theme.of(context).scaffoldBackgroundColor
                       ])),
             )),
+
         Positioned(
             bottom: 40.0,
-            child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => NewTaskWidget()),
-                  );
-                },
-                child: Container(
-                    padding: EdgeInsets.all(12.0),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24.0),
-                        color: kPrimary),
-                    child: const Text.rich(TextSpan(children: [
-                      WidgetSpan(
-                          child: Icon(
-                        Icons.add,
-                        size: 21.0,
-                        color: Colors.white,
-                      )),
-                      TextSpan(
-                          text: 'Add Task',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.w500,
-                          ))
-                    ])))))
+            child: SizeTransition(
+              sizeFactor: _btnAnimation,
+              child: GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                     newTaskPage);
+
+                  },
+                  child: Container(
+                      padding: const EdgeInsets.all(12.0),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24.0),
+                          color: kPrimary),
+                      child: const Text.rich(TextSpan(children: [
+                        WidgetSpan(
+                            child: Icon(
+                          Icons.add,
+                          size: 21.0,
+                          color: Colors.white,
+                        )),
+                        TextSpan(
+                            text: 'Add Task',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.w500,
+                            ))
+                      ])))),
+            )),
+
       ]),
     );
   }
@@ -163,7 +183,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Widget _todoItems() {
     return FadeTransition(
-      opacity: _animationController,
+      opacity: _listAnimationController,
       child: FutureBuilder(
           future: getProjectDetails(),
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {

@@ -3,7 +3,7 @@ import 'package:iostest/constants.dart';
 import 'package:iostest/designComponents/space.dart';
 
 class InputFieldWidget extends StatelessWidget {
-  const InputFieldWidget({Key? key, required this.labelText, this.trailingIcon, this.style, required this.controller, required this.onTapIcon, this.isTfEnabled, this.hint, this.maxLines}) : super(key: key);
+  const InputFieldWidget({Key? key, required this.labelText, this.trailingIcon, this.style, required this.controller, required this.onTapIcon, this.isTfEnabled, this.hint, this.maxLines, this.focusNode}) : super(key: key);
 
   final String labelText ;
   final Icon? trailingIcon;
@@ -13,6 +13,7 @@ class InputFieldWidget extends StatelessWidget {
   final bool? isTfEnabled;
   final String? hint;
   final int? maxLines;
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +22,11 @@ class InputFieldWidget extends StatelessWidget {
       children: [
         Expanded(
           child: TextField(
+
             keyboardType: TextInputType.multiline,
             maxLines: maxLines ?? 1,
             minLines: 1,
+
             enabled: isTfEnabled ?? true,
             style: style ?? TextStyle(
                 color: kPrimary,
@@ -33,12 +36,13 @@ class InputFieldWidget extends StatelessWidget {
             onTap: () {},
             controller: controller,
             decoration:  InputDecoration(
+
                 hintStyle: const TextStyle(
                   height: 2.0, // sets the distance between label and input
                 ),
                 hintText: hint ?? '',
                 // needed to create space between label and input
-                border: InputBorder.none,
+                border:InputBorder.none,
                 labelText: labelText,
                 labelStyle: const TextStyle(color: Colors.grey)),
           ),

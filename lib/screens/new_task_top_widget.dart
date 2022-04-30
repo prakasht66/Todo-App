@@ -4,10 +4,12 @@ import 'package:provider/provider.dart';
 
 import '../designComponents/Input_text.dart';
 import '../designComponents/space.dart';
-
+//ignore:must_be immutable
 class NewTaskTopWidget extends StatelessWidget {
-   NewTaskTopWidget({Key? key,this.titleTextController}) : super(key: key);
-  final titleTextController;
+   NewTaskTopWidget({Key? key,required this.controller, required this.title, required this.focusNode}) : super(key: key);
+  final TextEditingController controller;
+  final String title;
+  final FocusNode focusNode;
 
   late BuildContext _context;
   @override
@@ -22,16 +24,15 @@ class NewTaskTopWidget extends StatelessWidget {
   Widget _taskName()
   {
     return InputFieldWidget(
+      focusNode:focusNode ,
       trailingIcon: Icon(
         Icons.circle,
-        //color:selectedColor,
-        //color: _context.watch<TaskProvider>().selectedColor,
         color: _context.select((TaskProvider value) => value.selectedColor),
       ),
-      labelText: 'My New Task',
+      labelText: title.isEmpty ? '' : title,
 
       onTapIcon: () {},
-      controller: titleTextController,
+      controller: controller,
     );
   }
 }
