@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iostest/extensions/extension_color.dart';
 import 'package:iostest/provider/taskprovider.dart';
 import 'package:provider/provider.dart';
 
@@ -6,10 +7,11 @@ import '../designComponents/Input_text.dart';
 import '../designComponents/space.dart';
 //ignore:must_be immutable
 class NewTaskTopWidget extends StatelessWidget {
-   NewTaskTopWidget({Key? key,required this.controller, required this.title, required this.focusNode}) : super(key: key);
+   NewTaskTopWidget({Key? key,required this.controller, required this.title, required this.focusNode, this.selectedColor}) : super(key: key);
   final TextEditingController controller;
   final String title;
   final FocusNode focusNode;
+  final String? selectedColor;
 
   late BuildContext _context;
   @override
@@ -27,7 +29,7 @@ class NewTaskTopWidget extends StatelessWidget {
       focusNode:focusNode ,
       trailingIcon: Icon(
         Icons.circle,
-        color: _context.select((TaskProvider value) => value.selectedColor),
+        color: selectedColor !=null ? HexColor.fromHex(selectedColor!) : _context.select((TaskProvider value) => value.selectedColor),
       ),
       labelText: title.isEmpty ? '' : title,
 

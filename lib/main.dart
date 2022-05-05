@@ -7,6 +7,7 @@ import 'package:iostest/route_name.dart';
 
 import 'package:iostest/screens/home.dart';
 import 'package:iostest/screens/new_task.dart';
+import 'package:iostest/screens/profile_page.dart';
 import 'package:provider/provider.dart';
 
 
@@ -34,12 +35,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return  MaterialApp(
-      title: 'Flutter Demo',
+
       debugShowCheckedModeBanner: false,
       initialRoute: initialRoute,
+        theme: ThemeData(scaffoldBackgroundColor: const Color(0xFFEFEFEF),backgroundColor: Colors.blueGrey),
       home: const HomePage(),
       routes: {
-        newTaskPage : (context) => const NewTaskWidget(),
+        newTaskPage : (context) =>  NewTaskWidget(selectedTask: ModalRoute.of(context)?.settings.arguments as TaskModel,),
+        profilePage:(context)=> const ProfilePage(),
       } ,
     );
   }

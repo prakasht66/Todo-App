@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iostest/constants.dart';
 import 'package:iostest/designComponents/space.dart';
+import 'package:iostest/extensions/extension_color.dart';
 
 import '../designComponents/card_task.dart';
 
@@ -13,7 +14,7 @@ class BaseWidget extends StatefulWidget {
       this.titleWidget,
       this.titleText,
       this.body,
-      this.bodyTitleWidget})
+      this.bodyTitleWidget, this.rightIconPressed})
       : super(key: key);
   final Widget? leadingIcon;
   final Widget? trailingIcon;
@@ -22,6 +23,7 @@ class BaseWidget extends StatefulWidget {
   final bool? removeAllSpacing = false;
   final Widget? body;
   final Widget? bodyTitleWidget;
+  final VoidCallback? rightIconPressed;
 
   @override
   State<BaseWidget> createState() => _BaseWidgetState();
@@ -32,8 +34,11 @@ class _BaseWidgetState extends State<BaseWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        //backgroundColor: HexColor.fromHex('#53798a'),
         backgroundColor: Colors.transparent,
+
         elevation: 0,
+
         leading: Padding(
           padding: const EdgeInsets.only(left: spacing_small),
           child: widget.leadingIcon ??
@@ -49,8 +54,8 @@ class _BaseWidgetState extends State<BaseWidget> {
         title: widget.titleWidget ??
             Text(
               widget.titleText ?? 'Task Toast',
-              style: TextStyle(
-                  color: kPrimary,
+              style: const TextStyle(
+                  color: Colors.black,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w600,
                   fontSize: 18),
@@ -58,14 +63,20 @@ class _BaseWidgetState extends State<BaseWidget> {
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: CircleAvatar(
-              child: widget.trailingIcon ??
-                  const Icon(
-                    Icons.notifications_none,
-                  ),
-              foregroundColor: kPrimary,
-              backgroundColor: Colors.white,
-              radius: 30,
+            child: InkWell(
+              onTap: (){widget.rightIconPressed!.call();},
+              child: CircleAvatar(
+
+                child: widget.trailingIcon ?? Image.asset('assets/images/profile.png'),
+                    //  const Icon(
+                    //
+                    //   Icons.account_circle,
+                    //    size: 30,
+                    // ),
+                foregroundColor: kPrimary,
+                backgroundColor: Colors.white,
+                radius: 30,
+              ),
             ),
           )
         ],
@@ -95,41 +106,41 @@ class _BaseWidgetState extends State<BaseWidget> {
               const VSpace(size: spacing_small),
               timeLineWidget(),
               const VSpace(size: spacing_small),
-              const CardTaskWidget(
-                title: 'Test',
-                date: '17 oct 2022',
-                time: '8:00',
-                cardBackground: Colors.yellow,
-                status: 'Added',
-                chipItems: ['School', 'Everyday'],
-              ),
-              const VSpace(size: spacing_small),
-              const CardTaskWidget(
-                title: 'dagfgfadg',
-                date: '17 oct 2022',
-                time: '8:00',
-                cardBackground: Colors.cyan,
-                status: 'Added',
-                chipItems: ['School', 'Everyday'],
-              ),
-              const VSpace(size: spacing_small),
-              const CardTaskWidget(
-                title: 'dfadfgfagfdag',
-                date: '17 oct 2022',
-                time: '8:00',
-                cardBackground: Colors.pink,
-                status: 'Added',
-                chipItems: ['School', 'Everyday'],
-              ),
-              const VSpace(size: spacing_small),
-              const CardTaskWidget(
-                title: 'gadfgdfdgadg',
-                date: '17 oct 2022',
-                time: '8:00',
-                cardBackground: Colors.deepPurpleAccent,
-                status: 'Added',
-                chipItems: ['School', 'Everyday'],
-              ),
+              // const CardTaskWidget(
+              //   title: 'Test',
+              //   date: '17 oct 2022',
+              //   time: '8:00',
+              //   cardBackground: Colors.yellow,
+              //   status: 'Added',
+              //  // chipItems: ['School', 'Everyday'],
+              // ),
+              // const VSpace(size: spacing_small),
+              // const CardTaskWidget(
+              //   title: 'dagfgfadg',
+              //   date: '17 oct 2022',
+              //   time: '8:00',
+              //   cardBackground: Colors.cyan,
+              //   status: 'Added',
+              //   //chipItems: ['School', 'Everyday'],
+              // ),
+              // const VSpace(size: spacing_small),
+              // const CardTaskWidget(
+              //   title: 'dfadfgfagfdag',
+              //   date: '17 oct 2022',
+              //   time: '8:00',
+              //   cardBackground: Colors.pink,
+              //   status: 'Added',
+              //   //chipItems: ['School', 'Everyday'],
+              // ),
+              // const VSpace(size: spacing_small),
+              // const CardTaskWidget(
+              //   title: 'gadfgdfdgadg',
+              //   date: '17 oct 2022',
+              //   time: '8:00',
+              //   cardBackground: Colors.deepPurpleAccent,
+              //   status: 'Added',
+              //   //chipItems: ['School', 'Everyday'],
+              // ),
               const VSpace(size: spacing_small),
             ],
           ),

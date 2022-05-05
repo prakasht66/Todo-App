@@ -4,10 +4,10 @@ import 'package:iostest/designComponents/space.dart';
 import '../constants.dart';
 
 class CardTaskWidget extends StatelessWidget {
-  const CardTaskWidget(
+   CardTaskWidget(
       {Key? key,
       this.cardBackground,
-      this.chipItems,
+      required this.chipItems,
       required this.title,
       this.date,
       required this.time,
@@ -17,7 +17,7 @@ class CardTaskWidget extends StatelessWidget {
 
   final Color? cardBackground;
 
-  final List<String>? chipItems;
+  final String chipItems;
   final String title;
   final String? date;
   final String time;
@@ -26,13 +26,14 @@ class CardTaskWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var items = chipItems.split(',');
     return Container(
+      height: 170,
       margin: const EdgeInsets.symmetric(vertical: spacing_tiny),
       padding: const EdgeInsets.symmetric(horizontal: spacing_tiny,vertical: spacing_micro),
-      height: 170.0,
       decoration: BoxDecoration(
           color: cardBackground ?? Colors.cyan,
-          borderRadius: const BorderRadius.all(const Radius.circular(16.0))),
+          borderRadius: const BorderRadius.all(Radius.circular(16.0))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
@@ -42,10 +43,8 @@ class CardTaskWidget extends StatelessWidget {
             children: [
               Wrap(
                 spacing: 1.0,
-                children: List<Widget>.generate(
-                    chipItems!.length, // place the length of the array here
-                    (int index) {
-                  return Chip(label: Text(chipItems![index]));
+                children: List<Widget>.generate(items.length,(int index) {
+                  return Chip(label: Text(items[index]));
                 }).toList(),
               ),
               const Spacer(),
@@ -56,8 +55,9 @@ class CardTaskWidget extends StatelessWidget {
           subTitleWidget(),
           const Spacer(),
           dateWidget(),
-          const VSpace(size: spacing_tiny),
+          const VSpace(size: spacing_small),
           timeWidget(),
+          const VSpace(size: spacing_tiny),
         ],
       ),
     );
@@ -93,7 +93,9 @@ class CardTaskWidget extends StatelessWidget {
   }
 
   Widget timeWidget() {
-    return Row(children: [
+    return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
       const Icon(
         Icons.access_time,
         size: 16,
@@ -109,9 +111,10 @@ class CardTaskWidget extends StatelessWidget {
       ),
       const Spacer(),
       InkWell(
-        child: Icon(Icons.circle_outlined),
+        child: Icon(Icons.delete),
         onTap: onTapDelete,
-      )
+      ),
+          const HSpace(size: spacing_tiny),
     ]);
   }
 }

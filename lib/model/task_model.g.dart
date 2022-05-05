@@ -23,9 +23,12 @@ class TaskModelAdapter extends TypeAdapter<TaskModel> {
       dateCreated: fields[3] ?? DateTime.now().toString(),
       dateTarget: fields[4] ?? DateTime.now().toString(),
       timeCreated: fields[5] ?? DateTime.now().toString(),
+      // dateCreated: fields[3] ,
+      // dateTarget: fields[4] ,
+      // timeCreated: fields[5],
       colorCode: fields[7] ?? '#f79e82' ,
       place: fields[6]  ?? '',
-      currentStatus: fields[8] ?? 'notStarted', categories: fields[9] ?? ['General'].toList(),
+      currentStatus: fields[8] ?? 'notStarted', categories: fields[9] ?? 'General',
     );
   }
 

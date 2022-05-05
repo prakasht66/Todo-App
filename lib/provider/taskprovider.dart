@@ -12,6 +12,25 @@ class TaskProvider with ChangeNotifier {
 
   Color get selectedColor => _selectedColor;
 
+  int _selectedButtonIndex = 0;
+
+  int get selectedButtonIndex => _selectedButtonIndex;
+
+  TaskModel? _selectedTask;
+  TaskModel? get selectedTask => _selectedTask;
+
+  set setSelectedTask(TaskModel val)
+  {
+    _selectedTask = val;
+    notifyListeners();
+  }
+
+  set setSelectedButtonIndex(int val)
+  {
+    _selectedButtonIndex = val;
+    notifyListeners();
+  }
+
   bool _showAnimation = false;
 
   bool get showAnimation => _showAnimation;
@@ -34,7 +53,7 @@ class TaskProvider with ChangeNotifier {
 
   Future<dynamic> getItems() async {
     _taskList = TaskDbManger().taskBox.values.toList();
-
+    print('items -${_taskList.length}');
     //notifyListeners();
   }
 
@@ -50,5 +69,10 @@ class TaskProvider with ChangeNotifier {
     getItems();
 
     notifyListeners();
+  }
+
+  void reset()
+  {
+    _selectedTask = null;
   }
 }

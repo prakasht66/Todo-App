@@ -19,7 +19,9 @@ import '../model/task_model.dart';
 import '../utils.dart';
 
 class NewTaskWidget extends StatefulWidget {
-  const NewTaskWidget({Key? key}) : super(key: key);
+  NewTaskWidget({Key? key, this.selectedTask}) : super(key: key);
+
+  dynamic selectedTask;
 
   @override
   State<NewTaskWidget> createState() => _NewTaskWidgetState();
@@ -27,32 +29,48 @@ class NewTaskWidget extends StatefulWidget {
 
 class _NewTaskWidgetState extends State<NewTaskWidget> {
   var dateController = TextEditingController();
+  var timeController = TextEditingController();
   var placeController = TextEditingController();
   var titleTextController = TextEditingController();
   var descriptionController = TextEditingController();
   DateTime selectedDate = DateTime.now();
+  TimeOfDay selectedTime = TimeOfDay.now();
   Color selectedColor = HexColor.fromHex('#fbe114');
   late final Box taskBox;
-  List<String>selectedChips =[];
+  List<String> selectedChips = [];
   bool shouldPop = true;
 
   var titleFocus = FocusNode();
+  late List<bool> isSelectedButton;
 
   @override
   void initState() {
+    isSelectedButton = [true, false, false];
     super.initState();
   }
+
   @override
   void dispose() {
+    dateController.dispose();
+    timeController.dispose();
+    placeController.dispose();
+    titleTextController.dispose();
+    descriptionController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-
+    if (context.read<TaskProvider>().selectedTask !=null) {
+      var task = context.read<TaskProvider>().selectedTask;
+      titleTextController.text = task!.title;
+      descriptionController.text = task.description;
+      dateController.text = task.dateTarget.toString();
+      timeController.text = task.timeCreated.toString();
+    }
     return BaseWidget(
       body: buildBody(),
-      titleText: 'New Task',
+      titleText: widget.selectedTask != null ? 'Edit Task' : 'New Task',
       leadingIcon: InkWell(
           onTap: goBack,
           child: const Icon(
@@ -76,7 +94,12 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-               NewTaskTopWidget(controller: titleTextController, title: 'My New Task', focusNode: titleFocus,),
+                NewTaskTopWidget(
+                  controller: titleTextController,
+                  title: widget.selectedTask?.title ?? 'My New Task',
+                  focusNode: titleFocus,
+                  selectedColor: widget.selectedTask?.colorCode,
+                ),
                 const VSpace(size: spacing_small),
                 InputFieldWidget(
                   labelText: 'Description',
@@ -91,60 +114,82 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
                 _colorsRow(),
                 const VSpace(size: spacing_small),
                 const HorizontalDivider(),
-                const VSpace(size: spacing_tiny),
+                const VSpace(size: spacing_small),
                 _dateSelector(),
-                const HorizontalDivider(),
-                const VSpace(size: spacing_tiny),
                 //_placeEntry(),
                 // const HorizontalDivider(),
-                const VSpace(size: spacing_tiny),
+                const VSpace(size: spacing_small),
+                //_toggleButtons(),
                 _taskPriorityWidget(),
-                const VSpace(size: spacing_tiny),
+                const VSpace(size: spacing_small),
                 const HorizontalDivider(),
+                const VSpace(size: spacing_small),
                 _chipItems(),
                 const VSpace(size: spacing_tiny),
               ],
             ),
           ),
-          Positioned(bottom: 20, child: Container(color: Colors.transparent, padding: const EdgeInsets.all(spacing_tiny), child: _submitButton()))
+          Positioned(
+              bottom: 20,
+              child: Container(
+                  color: Colors.transparent,
+                  padding: const EdgeInsets.all(spacing_tiny),
+                  child: _submitButton()))
         ],
       ),
     );
   }
 
-  Widget _thinkAnimation()
-  {
+  Widget _thinkAnimation() {
     var rProvider = context.read<TaskProvider>();
-    if(rProvider.showAnimation)
-      {
-        return SizedBox(height:100.0,child: Lottie.asset('assets/forgot_person.json'));
-      }
-    else
-      {
-        return const SizedBox();
-      }
-
-
+    if (rProvider.showAnimation) {
+      return SizedBox(
+          height: 100.0, child: Lottie.asset('assets/forgot_person.json'));
+    } else {
+      return const SizedBox();
+    }
   }
 
   Widget _chipItems() {
-    String _isSelected = "";
+    if (context.read<TaskProvider>().selectedTask !=null) {
+      selectedChips.addAll(context.read<TaskProvider>().selectedTask!.categories.split(','));
+    }
     return Wrap(
         alignment: WrapAlignment.start,
         spacing: 2.0,
-
         runAlignment: WrapAlignment.start,
         crossAxisAlignment: WrapCrossAlignment.start,
         direction: Axis.horizontal,
-        children: chipCategories.map((i) => Container(
-          margin: const EdgeInsets.symmetric(horizontal: 2.0),
-          child: ChoiceChip(
-              backgroundColor: customColors[Random().nextInt(customColors.length)],
-              label: Text(i), onSelected: (value) {
-                selectedChips.add(i);
+        children: chipCategories
+            .map((i) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 2.0),
+                  child: ChoiceChip(
+                      backgroundColor: kGrey,
+                      selectedColor: kPrimary,
+                      labelStyle: TextStyle(
+                          color: selectedChips.contains(i)
+                              ? Colors.white
+                              : kPrimary),
+                      label: Text(i),
+                      onSelected: (value) {
+                        if (selectedChips.contains(i)) {
+                          selectedChips.remove(i);
+                          setState(() {});
+                          return;
+                        }
+                        if (selectedChips.length > 2) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                              content:
+                                  Text('Please select only 3 categories')));
+                          return;
+                        }
+                        selectedChips.add(i);
 
-          ;},  selected: _isSelected == i,),
-        )).toList());
+                        setState(() {});
+                      },
+                      selected: selectedChips.contains(i)),
+                ))
+            .toList());
   }
 
   Widget _submitButton() {
@@ -153,13 +198,10 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
         width: 200.0,
         child: ElevatedButton(
             onPressed: () async {
-
-              var isValid =  validateInputs();
-          if (isValid)
-            {
-              await addTask();
-            }
-
+              var isValid = validateInputs();
+              if (isValid) {
+                await addTask();
+              }
             },
             style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all<Color>(kPrimary),
@@ -173,33 +215,27 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
     );
   }
 
-  bool validateInputs()
-  {
-   bool isValid = false;
-    if (titleTextController.text.isEmpty)
-      {
-        showDialog('Title Cannot be Empty');
-        return isValid;
-      }
-    if (descriptionController.text.isEmpty)
-      {
-        showDialog('Description Cannot be Empty');
-        return isValid;
-      }
+  bool validateInputs() {
+    bool isValid = false;
+    if (titleTextController.text.isEmpty) {
+      showDialog('Title Cannot be Empty');
+      return isValid;
+    }
+    if (descriptionController.text.isEmpty) {
+      showDialog('Description Cannot be Empty');
+      return isValid;
+    }
 
-    isValid =true;
+    isValid = true;
 
     return isValid;
-
-
   }
 
-  void showDialog(String message)
-  {
+  void showDialog(String message) {
     showModalBottomSheet(
       context: context,
-
-      builder: (context) {        // we set up a container inside which
+      builder: (context) {
+        // we set up a container inside which
         // we create center column and display text
         return SizedBox(
           height: 200,
@@ -207,20 +243,20 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                 Text(message),
+                Text(message),
                 ElevatedButton(
-                    child: const Text(
-                        'Ok',
-                        style: TextStyle(fontSize: 14)
-                    ),
-                    style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(kPrimary),
-                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              side: BorderSide.none,
-                              borderRadius: BorderRadius.circular(18.0),
-                            ))),
-                    onPressed: () {Navigator.pop(context);},
+                  child: const Text('Ok', style: TextStyle(fontSize: 14)),
+                  style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all<Color>(kPrimary),
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                        side: BorderSide.none,
+                        borderRadius: BorderRadius.circular(18.0),
+                      ))),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
                 )
               ],
             ),
@@ -231,19 +267,23 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
   }
 
   Future<void> addTask() async {
-    TaskProvider taskProvider = Provider.of<TaskProvider>(context, listen: false);
+    TaskProvider taskProvider =
+        Provider.of<TaskProvider>(context, listen: false);
     var task = TaskModel(
         id: 0.toString(),
         title: titleTextController.text,
         description: descriptionController.text,
-        dateCreated: DateTime.now().toString(),
-        dateTarget: selectedDate.toString(),
-        currentStatus: status.notStarted.toString(),
-        colorCode: selectedColor.toHex(), categories: selectedChips.isNotEmpty ? selectedChips : ['General'].toList());
+        dateCreated:
+            BaseUtils.convertDateTimeDisplay(DateTime.now().toString()),
+        dateTarget: BaseUtils.convertDateTimeDisplay(selectedDate.toString()),
+        timeCreated: timeController.text,
+        currentStatus:getSelectedPriority(),
+        colorCode: selectedColor.toHex(),
+        categories:  selectedChips.isNotEmpty ? selectedChips.join(',') : 'General');
     //TaskDbManger().addTask(val: tasks[0]);
     await taskProvider.addItem(task);
     //Future.delayed(const Duration(seconds: 1), () {
-      Navigator.of(context).pop();
+    Navigator.of(context).pop();
     //});
   }
 
@@ -264,7 +304,22 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
       }).toList(),
     );
   }
+  String getSelectedPriority()
+  {
+    switch(context.read<TaskProvider>().selectedButtonIndex)
+    {
+      case 0:
+        return status.Basic.name;
+      case 1:
+        return status.Urgent.name;
+      case 2:
+        return status.Important.name;
 
+    }
+    return status.Basic.name;
+
+
+  }
   void getSelectedColor(int selectedIndex) {
     Color currentColor = customColors[selectedIndex];
     //context.select((TaskProvider value) => value.selectedColor = currentColor);
@@ -286,28 +341,38 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
   Widget _dateSelector() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Expanded(
-          child: TextField(
-            style: TextStyle(
-                color: kPrimary,
-                fontWeight: FontWeight.w800,
-                fontSize: 20,
-                fontFamily: 'Poppins'),
-            enabled: false,
-            onTap: () {
-              _selectDate(context);
-            },
-            controller: dateController,
-            decoration: const InputDecoration(
-                hintStyle: TextStyle(
-                  height: 2.0, // sets the distance between label and input
-                ),
-                hintText: '',
-                // needed to create space between label and input
-                border: InputBorder.none,
-                labelText: 'Deadline',
-                labelStyle: TextStyle(color: Colors.grey)),
+          flex: 1,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: spacing_small, vertical: 0),
+            decoration: BoxDecoration(
+                border: Border.all(color: kGrey),
+                borderRadius: BorderRadius.circular(spacing_small)),
+            child: TextField(
+              style: TextStyle(
+                  color: kPrimary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                  fontFamily: 'Poppins'),
+              enabled: false,
+              onTap: () {
+                _selectDate(context);
+              },
+              controller: dateController,
+              decoration: const InputDecoration(
+                  hintStyle: TextStyle(
+                    height: 1.0, // sets the distance between label and input
+                  ),
+                  hintText: '',
+                  // needed to create space between label and input
+                  border: InputBorder.none,
+                  labelText: 'Deadline',
+                  labelStyle: TextStyle(color: Colors.grey)),
+            ),
           ),
         ),
         const HSpace(size: spacing_tiny),
@@ -316,7 +381,46 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
           onTap: () {
             _selectDate(context);
           },
-        )
+        ),
+        const HSpace(size: spacing_small),
+        Expanded(
+          flex: 1,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: spacing_small, vertical: 0),
+            decoration: BoxDecoration(
+                border: Border.all(color: kGrey),
+                borderRadius: BorderRadius.circular(spacing_small)),
+            child: TextField(
+              style: TextStyle(
+                  color: kPrimary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                  fontFamily: 'Poppins'),
+              enabled: false,
+              onTap: () {
+                _selectDate(context);
+              },
+              controller: timeController,
+              decoration: const InputDecoration(
+                  hintStyle: TextStyle(
+                    height: 1.0, // sets the distance between label and input
+                  ),
+                  hintText: '',
+                  // needed to create space between label and input
+                  border: InputBorder.none,
+                  labelText: 'Time',
+                  labelStyle: TextStyle(color: Colors.grey)),
+            ),
+          ),
+        ),
+        const HSpace(size: spacing_tiny),
+        InkWell(
+          child: const Icon(Icons.access_time),
+          onTap: () {
+            _showTimePicker();
+          },
+        ),
       ],
     );
   }
@@ -359,9 +463,17 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
     Navigator.pop(context);
   }
 
-  _selectDate(BuildContext context) async {
+  void _showTimePicker() {
+    showTimePicker(context: context, initialTime: TimeOfDay.now())
+        .then((value) {
+      selectedTime = value!;
+      timeController.text = selectedTime.format(context).toString();
+      setState(() {});
+    });
+  }
 
-    final DateTime? picked= await showDatePicker(
+  _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -378,54 +490,151 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
           ),
           child: child!,
         );
-      }, initialDate: DateTime.now(),
-      firstDate: DateTime.now(),  lastDate:  DateTime(2025), context: context,
+      },
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2025),
+      context: context,
     );
     if (picked != null && picked != selectedDate) {
       //setState(() {
-        selectedDate = picked;
-        dateController.text = BaseUtils.convertDateTimeDisplay (selectedDate.toString());
-     // });
+      selectedDate = picked;
+      dateController.text =
+          BaseUtils.convertDateTimeDisplay(selectedDate.toString());
+      // });
     }
   }
 
+  ///Toggle Buttons
+  Widget _toggleButtons() {
+    return SizedBox(
+      height: 50,
+      child: ToggleButtons(
+        borderColor: Colors.transparent,
+        selectedBorderColor: Colors.transparent,
+        selectedColor: kPrimary,
+        disabledColor: Colors.transparent,
+        color: Colors.transparent,
+        fillColor: Colors.transparent,
+        children: <Widget>[
+          Expanded(
+              flex: 1,
+              child: Container(
+                  color: Colors.transparent,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: spacing_micro),
+                  width: MediaQuery.of(context).size.width / 3 - 12,
+                  child: ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(kPrimary),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18.0),
+                          ))),
+                      onPressed: () {},
+                      child: Text('Basic')))),
+          Expanded(
+              flex: 1,
+              child: Container(
+                  color: Colors.transparent,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: spacing_micro),
+                  width: MediaQuery.of(context).size.width / 3 - 12,
+                  child: ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(kPrimary),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18.0),
+                          ))),
+                      onPressed: () {},
+                      child: Text('Basic')))),
+          Expanded(
+              flex: 1,
+              child: Container(
+                  color: Colors.transparent,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: spacing_micro),
+                  width: MediaQuery.of(context).size.width / 3 - 12,
+                  child: ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(kPrimary),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18.0),
+                          ))),
+                      onPressed: () {},
+                      child: Text('Basic')))),
+        ],
+        onPressed: (int index) {
+          setState(() {
+            isSelectedButton[index] = !isSelectedButton[index];
+          });
+        },
+        isSelected: isSelectedButton,
+      ),
+    );
+  }
+
   Widget _taskPriorityWidget() {
+    // if (widget.selectedTask!=null)
+    //   {
+    //     var currentItem=  status.values.where((element) => element.name == widget.selectedTask.currentStatus).first.index;
+    //     context.read<TaskProvider>().setSelectedButtonIndex = currentItem;
+    //   }
+    var selectedButton = context.read<TaskProvider>().selectedButtonIndex;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Expanded(
           child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {context.read<TaskProvider>().setSelectedButtonIndex = 0;setState(() {
+
+              });},
               style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(kPrimary),
+                  backgroundColor: selectedButton == 0
+                      ? MaterialStateProperty.all<Color>(kPrimary)
+                      : MaterialStateProperty.all<Color>(Colors.white),
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18.0),
                   ))),
-              child: Text('Basic')),
+              child: Text('Basic',style: TextStyle(color: selectedButton==0 ? Colors.white :kPrimary ),)),
         ),
         HSpace(size: spacing_tiny),
         Expanded(
           child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {context.read<TaskProvider>().setSelectedButtonIndex = 1;setState(() {
+
+              });},
               style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(Colors.white),
+                  backgroundColor: selectedButton == 1
+                      ? MaterialStateProperty.all<Color>(kPrimary)
+                      : MaterialStateProperty.all<Color>(Colors.white),
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
                     side: const BorderSide(color: Colors.grey, width: 0.5),
                     borderRadius: BorderRadius.circular(18.0),
                   ))),
-              child: Text('Urgent', style: TextStyle(color: kPrimary))),
+              child: Text('Urgent', style: TextStyle(color: selectedButton==1 ? Colors.white :kPrimary ))),
         ),
         HSpace(size: spacing_tiny),
         Expanded(
           child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {context.read<TaskProvider>().setSelectedButtonIndex = 2;setState(() {
+
+              });},
               style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(Colors.white),
+                  backgroundColor: selectedButton == 2
+                      ? MaterialStateProperty.all<Color>(kPrimary)
+                      : MaterialStateProperty.all<Color>(Colors.white),
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
                     side: const BorderSide(color: Colors.grey, width: 0.5),
@@ -433,7 +642,7 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
                   ))),
               child: Text(
                 'Important',
-                style: TextStyle(color: kPrimary),
+                style: TextStyle(color: selectedButton==2 ? Colors.white :kPrimary )
               )),
         ),
       ],

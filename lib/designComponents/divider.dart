@@ -10,8 +10,8 @@ class HorizontalDivider extends StatelessWidget {
   }
 }
 
-class VerticalDivider extends StatelessWidget {
-  const VerticalDivider({Key? key}) : super(key: key);
+class VerticalSplit extends StatelessWidget {
+  const VerticalSplit({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

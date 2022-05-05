@@ -25,11 +25,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late AnimationController _listAnimationController;
   late AnimationController _addTaskBtnAnimationController;
 
-
   late Animation _animation;
   late Animation<double> _btnAnimation;
   double animationDuration = 0.0;
-
 
   @override
   void initState() {
@@ -43,9 +41,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         vsync: this, duration: const Duration(milliseconds: totalDuration));
     _listAnimationController.forward();
     _addTaskBtnAnimationController.forward();
-  _btnAnimation = CurvedAnimation(
-        parent: _addTaskBtnAnimationController,
-        curve: Curves.fastOutSlowIn,);
+    _btnAnimation = CurvedAnimation(
+      parent: _addTaskBtnAnimationController,
+      curve: Curves.fastOutSlowIn,
+    );
   }
 
   @override
@@ -57,7 +56,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return BaseWidget(body: buildBody());
+    return BaseWidget(body: buildBody(),rightIconPressed: (){
+
+      Navigator.pushNamed(context, profilePage);
+
+    },);
   }
 
   Widget title_widget() {
@@ -83,7 +86,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget buildBody() {
-
     return Container(
       margin: const EdgeInsets.all(spacing_small),
       child:
@@ -92,14 +94,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-
             title_widget(),
             const VSpace(size: spacing_tiny),
             subTitleWidget(),
             const VSpace(size: spacing_small),
             timeLineWidget(),
             const VSpace(size: spacing_small),
-
             Expanded(
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -107,7 +107,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-
                     _todoItems(),
                     const VSpace(size: spacing_small),
                   ],
@@ -137,17 +136,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         Theme.of(context).scaffoldBackgroundColor
                       ])),
             )),
-
         Positioned(
             bottom: 40.0,
             child: SizeTransition(
               sizeFactor: _btnAnimation,
               child: GestureDetector(
                   onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                     newTaskPage);
-
+                    context.read<TaskProvider>().reset();
+                    context.read<TaskProvider>().setSelectedButtonIndex = 0;
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => NewTaskWidget()));
                   },
                   child: Container(
                       padding: const EdgeInsets.all(12.0),
@@ -170,7 +168,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             ))
                       ])))),
             )),
-
       ]),
     );
   }
@@ -214,22 +211,30 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               parent: animation,
                               curve: Curves.bounceIn,
                               reverseCurve: Curves.bounceOut)),
-                          child: CardTaskWidget(
-                            title: snapshot.data[index].title,
-                            //date:  DateFormat('dd/MM/yyyy').parse(snapshot.data[index].dateTarget).toString(),
-                            time: DateTime.now().toLocal().toString(),
-                            cardBackground: HexColor.fromHex(
-                                snapshot.data[index].colorCode),
-                            status: snapshot.data[index].title,
-                            chipItems: snapshot.data[index].categories,
-                            onTapDelete: () async {
-                              print('Delete this item');
-
-                              await context
-                                  .read<TaskProvider>()
-                                  .deleteItem(index);
-                              await context.read<TaskProvider>().getItems();
+                          child: InkWell(
+                            onTap: () {
+                              context.read<TaskProvider>().setSelectedTask =
+                                  snapshot.data[index];
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => NewTaskWidget()));
+                              //Navigator.of(context).push(newTaskPage);
                             },
+                            child: CardTaskWidget(
+                              title: snapshot.data[index].title,
+                              //date:  DateFormat('dd/MM/yyyy').parse(snapshot.data[index].dateTarget).toString(),
+                              time: snapshot.data[index].timeCreated,
+                              cardBackground: HexColor.fromHex(
+                                  snapshot.data[index].colorCode),
+                              status: snapshot.data[index].title,
+                              chipItems: snapshot.data[index].categories,
+                              date: snapshot.data[index].dateTarget,
+                              onTapDelete: () async {
+                                await context
+                                    .read<TaskProvider>()
+                                    .deleteItem(index);
+                                await context.read<TaskProvider>().getItems();
+                              },
+                            ),
                           ));
                     });
               }

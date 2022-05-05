@@ -23,5 +23,6 @@ var customColors = [
 
 ];
 
+
  var chipCategories = ['Work','Business','Hobby','Personal','Home','Family','Money','Blog','Technology','Finance',
    'leisure','Health','Social','Activity','Goals','Education','Media',];
