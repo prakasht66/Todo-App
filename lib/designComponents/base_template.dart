@@ -1,10 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:iostest/constants.dart';
 import 'package:iostest/designComponents/space.dart';
 import 'package:iostest/extensions/extension_color.dart';
 
 import '../designComponents/card_task.dart';
-
+import '../utils/user_shared_preferences.dart';
 
 class BaseWidget extends StatefulWidget {
   const BaseWidget(
@@ -14,7 +16,8 @@ class BaseWidget extends StatefulWidget {
       this.titleWidget,
       this.titleText,
       this.body,
-      this.bodyTitleWidget, this.rightIconPressed})
+      this.bodyTitleWidget,
+      this.rightIconPressed})
       : super(key: key);
   final Widget? leadingIcon;
   final Widget? trailingIcon;
@@ -30,6 +33,17 @@ class BaseWidget extends StatefulWidget {
 }
 
 class _BaseWidgetState extends State<BaseWidget> {
+  File? imageFile;
+
+  @override
+  void initState() {
+    var imagePath = UserSharedPreference.getUserImage() ?? '';
+    if (imagePath.isNotEmpty) {
+      imageFile = File(imagePath);
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,7 +67,7 @@ class _BaseWidgetState extends State<BaseWidget> {
         ),
         title: widget.titleWidget ??
             Text(
-              widget.titleText ?? 'Task Toast',
+              widget.titleText ?? 'Toast Todo',
               style: const TextStyle(
                   color: Colors.black,
                   fontFamily: 'Poppins',
@@ -64,20 +78,31 @@ class _BaseWidgetState extends State<BaseWidget> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: InkWell(
-              onTap: (){widget.rightIconPressed!.call();},
-              child: CircleAvatar(
-
-                child: widget.trailingIcon ?? Image.asset('assets/images/profile.png'),
-                    //  const Icon(
-                    //
-                    //   Icons.account_circle,
-                    //    size: 30,
-                    // ),
-                foregroundColor: kPrimary,
-                backgroundColor: Colors.white,
-                radius: 30,
-              ),
-            ),
+                onTap: () {
+                  widget.rightIconPressed!.call();
+                },
+                child: imageFile == null
+                    ? CircleAvatar(
+                        child: widget.trailingIcon ??
+                            Icon(
+                              Icons.account_circle,
+                              color: Colors.black,
+                              size: 40,
+                            ),
+                        foregroundColor: kPrimary,
+                        backgroundColor: Colors.transparent,
+                        radius: 30,
+                      )
+                    : widget.trailingIcon ?? CircleAvatar(
+                        backgroundImage: Image.file(
+                          imageFile!,
+                          fit: BoxFit.cover,
+                        ).image,
+                        child: SizedBox(),
+                        foregroundColor: kPrimary,
+                        backgroundColor: Colors.transparent,
+                        radius: 30,
+                      )),
           )
         ],
       ),
@@ -152,7 +177,9 @@ class _BaseWidgetState extends State<BaseWidget> {
             child: Container(
               height: 100,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(5.0),topRight: Radius.circular(5.0)),
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(5.0),
+                      topRight: Radius.circular(5.0)),
                   color: Colors.pink,
                   gradient: LinearGradient(
                       begin: Alignment.topCenter,
@@ -161,25 +188,31 @@ class _BaseWidgetState extends State<BaseWidget> {
                         Theme.of(context)
                             .scaffoldBackgroundColor
                             .withOpacity(0.01),
-                        Theme.of(context)
-                            .scaffoldBackgroundColor
-
+                        Theme.of(context).scaffoldBackgroundColor
                       ])),
             )),
         Positioned(
-            bottom: 40.0,
-
-              child: Container(
-                  padding: EdgeInsets.all(12.0),
-                  decoration:
-                      BoxDecoration(borderRadius: BorderRadius.circular(24.0),color: kPrimary),
-                  child: const Text.rich(TextSpan(children: [
-
-                    WidgetSpan(child: Icon(Icons.add,size: 21.0,color: Colors.white,)),
-                    TextSpan(text: 'Add Task',style: TextStyle(color: Colors.white,fontSize: 20.0,fontWeight: FontWeight.w500,))
-
-                  ]))),
-            )
+          bottom: 40.0,
+          child: Container(
+              padding: EdgeInsets.all(12.0),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24.0), color: kPrimary),
+              child: const Text.rich(TextSpan(children: [
+                WidgetSpan(
+                    child: Icon(
+                  Icons.add,
+                  size: 21.0,
+                  color: Colors.white,
+                )),
+                TextSpan(
+                    text: 'Add Task',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.w500,
+                    ))
+              ]))),
+        )
       ]),
     );
   }

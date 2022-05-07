@@ -19,6 +19,16 @@ class TaskProvider with ChangeNotifier {
   TaskModel? _selectedTask;
   TaskModel? get selectedTask => _selectedTask;
 
+  bool _isNewTask = false;
+
+  bool get isNewTask => _isNewTask;
+
+  set setIsNewTask(bool val)
+  {
+    _isNewTask = val;
+    notifyListeners();
+  }
+
   set setSelectedTask(TaskModel val)
   {
     _selectedTask = val;
@@ -74,5 +84,6 @@ class TaskProvider with ChangeNotifier {
   void reset()
   {
     _selectedTask = null;
+    setSelectedButtonIndex = 0;
   }
 }

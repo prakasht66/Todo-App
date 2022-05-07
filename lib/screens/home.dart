@@ -56,11 +56,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return BaseWidget(body: buildBody(),rightIconPressed: (){
+    return BaseWidget(
+      body: buildBody(),
+      rightIconPressed: () {
+        Navigator.pushNamed(context, profilePage);
+      },
 
-      Navigator.pushNamed(context, profilePage);
-
-    },);
+    );
   }
 
   Widget title_widget() {
@@ -142,10 +144,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               sizeFactor: _btnAnimation,
               child: GestureDetector(
                   onTap: () {
-                    context.read<TaskProvider>().reset();
-                    context.read<TaskProvider>().setSelectedButtonIndex = 0;
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => NewTaskWidget()));
+                    context.read<TaskProvider>().setIsNewTask = true;
+                    Navigator.of(context).push(createRoute(NewTaskWidget()));
+
+                    // Navigator.push(
+                    //   context,
+                    //   PageRouteBuilder(
+                    //     pageBuilder: (c, a1, a2) => NewTaskWidget(),
+                    //     transitionsBuilder: (c, anim, a2, child) => FadeTransition(opacity: anim, child: child),
+                    //     transitionDuration: Duration(milliseconds: 500),
+                    //   ),
+                    // );
+                    // Navigator.of(context).push(MaterialPageRoute(
+                    //     builder: (context) => NewTaskWidget()));
                   },
                   child: Container(
                       padding: const EdgeInsets.all(12.0),
@@ -172,6 +183,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  Route createRoute(Widget page) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(1.0, 0.0);
+        const end = Offset.zero;
+        const curve = Curves.easeInOut;
+
+        var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+    );
+  }
+
   Future getProjectDetails() async {
     context.select((TaskProvider taskProvider) => taskProvider.getItems());
     var tasks = context.watch<TaskProvider>().taskList;
@@ -194,49 +224,58 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   child: Text('An error occured'),
                 );
               } else {
-                return AnimatedList(
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    initialItemCount: snapshot.data.length,
-                    physics: const NeverScrollableScrollPhysics(),
-                    // itemCount: snapshot.data.length,
-                    itemBuilder: (context, index, animation) {
-                      snapshot.data.length;
+                return snapshot.data.length == 0
+                    ? Center(child: Text('No Tasks Found'))
+                    : AnimatedList(
+                        scrollDirection: Axis.vertical,
+                        shrinkWrap: true,
+                        initialItemCount: snapshot.data.length,
+                        physics: const NeverScrollableScrollPhysics(),
+                        // itemCount: snapshot.data.length,
+                        itemBuilder: (context, index, animation) {
+                          snapshot.data.length;
 
-                      return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(1, 0),
-                            end: const Offset(0, 0),
-                          ).animate(CurvedAnimation(
-                              parent: animation,
-                              curve: Curves.bounceIn,
-                              reverseCurve: Curves.bounceOut)),
-                          child: InkWell(
-                            onTap: () {
-                              context.read<TaskProvider>().setSelectedTask =
-                                  snapshot.data[index];
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => NewTaskWidget()));
-                              //Navigator.of(context).push(newTaskPage);
-                            },
-                            child: CardTaskWidget(
-                              title: snapshot.data[index].title,
-                              //date:  DateFormat('dd/MM/yyyy').parse(snapshot.data[index].dateTarget).toString(),
-                              time: snapshot.data[index].timeCreated,
-                              cardBackground: HexColor.fromHex(
-                                  snapshot.data[index].colorCode),
-                              status: snapshot.data[index].title,
-                              chipItems: snapshot.data[index].categories,
-                              date: snapshot.data[index].dateTarget,
-                              onTapDelete: () async {
-                                await context
-                                    .read<TaskProvider>()
-                                    .deleteItem(index);
-                                await context.read<TaskProvider>().getItems();
-                              },
-                            ),
-                          ));
-                    });
+                          return SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(1, 0),
+                                end: const Offset(0, 0),
+                              ).animate(CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.bounceIn,
+                                  reverseCurve: Curves.bounceOut)),
+                              child: InkWell(
+                                onTap: () {
+                                  context.read<TaskProvider>().setIsNewTask =
+                                      false;
+                                  context.read<TaskProvider>().setSelectedTask =
+                                      snapshot.data[index];
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => NewTaskWidget(),
+                                    ),
+                                  );
+                                  //Navigator.of(context).push(newTaskPage);
+                                },
+                                child: CardTaskWidget(
+                                  title: snapshot.data[index].title,
+                                  //date:  DateFormat('dd/MM/yyyy').parse(snapshot.data[index].dateTarget).toString(),
+                                  time: snapshot.data[index].timeCreated,
+                                  cardBackground: HexColor.fromHex(
+                                      snapshot.data[index].colorCode),
+                                  status: snapshot.data[index].currentStatus,
+                                  chipItems: snapshot.data[index].categories,
+                                  date: snapshot.data[index].dateTarget,
+                                  onTapDelete: () async {
+                                    await context
+                                        .read<TaskProvider>()
+                                        .deleteItem(index);
+                                    await context
+                                        .read<TaskProvider>()
+                                        .getItems();
+                                  },
+                                ),
+                              ));
+                        });
               }
             }
           }),

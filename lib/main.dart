@@ -8,6 +8,7 @@ import 'package:iostest/route_name.dart';
 import 'package:iostest/screens/home.dart';
 import 'package:iostest/screens/new_task.dart';
 import 'package:iostest/screens/profile_page.dart';
+import 'package:iostest/utils/user_shared_preferences.dart';
 import 'package:provider/provider.dart';
 
 
@@ -17,10 +18,12 @@ Future<void> main() async {
 
   // Registering the adapter
   Hive.registerAdapter(TaskModelAdapter());
+
   // Opening the box
   await Hive.openBox('tasks');
-
+  await Hive.openBox('profile');
   TaskDbManger().initDb();
+  UserSharedPreference.init();
 
   runApp(MultiProvider(providers:[
     ChangeNotifierProvider (create: (_) => TaskProvider() ),

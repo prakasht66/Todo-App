@@ -2,10 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:iostest/constants.dart';
 import 'package:iostest/designComponents/Input_text.dart';
 import 'package:iostest/designComponents/base_template.dart';
+import 'package:iostest/utils/user_shared_preferences.dart';
 
 import '../designComponents/space.dart';
 
@@ -19,9 +21,28 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   var aboutTC = TextEditingController();
   File? imageFile;
+
+  Box? profileBox;
+
+  @override
+  void initState() {
+    //profileBox = Hive.box('profile');
+
+    var imagePath = UserSharedPreference.getUserImage() ?? '';
+    if (imagePath.isNotEmpty) {
+      imageFile = File(imagePath);
+    }
+    var description = UserSharedPreference.getUserBio() ?? '';
+    if (description.isNotEmpty) {
+      aboutTC.text = description;
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BaseWidget(
+      titleText: 'Profile',
       leadingIcon: InkWell(
           onTap: () {
             Navigator.of(context).pop();
@@ -39,153 +60,145 @@ class _ProfilePageState extends State<ProfilePage> {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
-          child:  Stack(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: spacing_x_large,
-                    horizontal: spacing_small,
-                  ),
-                  child:   Center(
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundImage: imageFile != null ? Image.file(
+        child: Stack(children: [
+          Container(
+            padding: const EdgeInsets.symmetric(
+              vertical: spacing_x_large,
+              horizontal: spacing_small,
+            ),
+            child: Center(
+              child: CircleAvatar(
+                radius: 50,
+                backgroundImage: imageFile != null
+                    ? Image.file(
                         imageFile!,
                         fit: BoxFit.cover,
-                      ).image: null ,
-                      child: imageFile !=null ? SizedBox():Icon(Icons.person_outline,size: 80,color: Colors.black12,),
-                      backgroundColor: Colors.grey,
+                      ).image
+                    : null,
+                child: imageFile != null
+                    ? SizedBox()
+                    : Icon(
+                        Icons.person_outline,
+                        size: 80,
+                        color: Colors.black12,
+                      ),
+                backgroundColor: Colors.grey,
+              ),
+            ),
+          ),
+          Positioned(
+              top: 100,
+              right: 160,
+              child: Container(
+                decoration: const BoxDecoration(
+                    shape: BoxShape.circle, color: Colors.white),
+                width: 40,
+                height: 40,
+                child: SizedBox(),
+              )),
+          Positioned(
+              top: 105,
+              right: 165,
+              child: Container(
+                decoration: BoxDecoration(shape: BoxShape.circle),
+                width: 30,
+                height: 30,
+                child: InkWell(
+                  onTap: () async {
+                    await _pickImageFromGallery();
+
+                    print('ifdsgfuds');
+                  },
+                  child: const CircleAvatar(
+                    backgroundColor: Colors.black,
+                    child: Icon(
+                      Icons.edit_note_rounded,
+                      color: Colors.white,
                     ),
                   ),
                 ),
-                Positioned(
-                    top: 100,
-                    right: 160,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                          shape: BoxShape.circle, color: Colors.white),
-                      width: 40,
-                      height: 40,
-                      child: SizedBox(),
-                    )),
-                Positioned(
-                    top: 105,
-                    right: 165,
-                    child: Container(
-                      decoration: BoxDecoration(shape: BoxShape.circle),
-                      width: 30,
-                      height: 30,
-                      child: InkWell(
-                        onTap: () async {
-                          await _pickImageFromGallery();
-
-                          print('ifdsgfuds');
-                        },
-                        child: const CircleAvatar(
-                          backgroundColor: Colors.black,
-                          child: Icon(
-                            Icons.edit_note_rounded,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    )),
-
-
-            Container(
-              margin: EdgeInsets.only(top: 150),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12.0),
-                    child: Text(
-                      'Hey Buddy',
-                      style: TextStyle(
-                          color: kPrimary,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w700,
-                          fontSize: 22),
-                    ),
+              )),
+          Container(
+            margin: EdgeInsets.only(top: 150),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 12.0),
+                  child: Text(
+                    'Hey Buddy',
+                    style: TextStyle(
+                        color: kPrimary,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 22),
                   ),
-                  VSpace(
-                    size: spacing_small,
+                ),
+                VSpace(
+                  size: spacing_small,
+                ),
+                Container(
+                  height: 150.0,
+                  decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(16.0),
+                      border: Border.all(color: kPrimary)),
+                  child: Padding(
+                    padding:
+                        EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child: TextField(
+                          maxLines: 5,
+                          controller: aboutTC,
+                          decoration: const InputDecoration(
+                              hintStyle: TextStyle(
+                                height:
+                                    2.0, // sets the distance between label and input
+                              ),
+                              // needed to create space between label and input
+                              border: InputBorder.none,
+                              hintText: 'Write something about you...',
+                              labelStyle: TextStyle(color: Colors.grey)),
+                        )),
                   ),
-                  Container(
-                    height: 150.0,
-                    decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(16.0),
-                        border: Border.all(color: kPrimary)),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
-                      child: Align(
-                          alignment: Alignment.topLeft,
-                          child: TextField(
-                            maxLines: 5,
-                            controller: aboutTC,
-                            decoration: const InputDecoration(
-                                hintStyle: TextStyle(
-                                  height:
-                                  2.0, // sets the distance between label and input
-                                ),
-                                // needed to create space between label and input
-                                border: InputBorder.none,
-                                hintText: 'Write something about you...',
-                                labelStyle: TextStyle(color: Colors.grey)),
-                          )),
-                    ),
-                  ),
-                  VSpace(size: spacing_xx_large),
-                  Center(child: _submitButton())
-                ],
-              ),
+                ),
+                VSpace(size: spacing_x_large),
+                Center(child: _submitButton())
+              ],
             ),
-
-
-          ]),
-
-
+          ),
+        ]),
       ),
     );
   }
 
-  Future _pickImageFromGallery() async
-  {
-    try
-    {
+  Future _pickImageFromGallery() async {
+    try {
       final ImagePicker _picker = ImagePicker();
 
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      if (image == null) return ;
+      if (image == null) return;
       imageFile = File(image.path);
-      setState(() {
-
-      });
+      await UserSharedPreference.setUserImage(image.path);
+      setState(() {});
+    } on PlatformException catch (e) {
+      print('Failed to pick image $e');
     }
-    on PlatformException catch (e){
-          print('Failed to pick image $e');
-    }
-
-
   }
 
-
-
-
-Widget _submitButton() {
+  Widget _submitButton() {
     return Center(
       child: SafeArea(
         child: SizedBox(
           width: 150.0,
           child: ElevatedButton(
-              onPressed: () {},
-              // onPressed: () async {
-              //   var isValid = validateInputs();
-              //   if (isValid) {
-              //     await addTask();
-              //   }
-              // },
+              onPressed: () async {
+                await UserSharedPreference.setUserBio(aboutTC.text);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:
+                    Text('Saved')));
+
+              },
               style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(kPrimary),
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(

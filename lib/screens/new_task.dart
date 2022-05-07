@@ -45,7 +45,12 @@ class _NewTaskWidgetState extends State<NewTaskWidget> {
 
   @override
   void initState() {
-    isSelectedButton = [true, false, false];
+    if ( context.read<TaskProvider>().isNewTask)
+      {
+        context.read<TaskProvider>().reset();
+        isSelectedButton = [true, false, false];
+      }
+
     super.initState();
   }
 
